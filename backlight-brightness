@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+#
+# script: backlight-brightness
+
+readonly BACKLIGHT_PATH=${BACKLIGHT_PATH:-/sys/class/backlight/intel_backlight}
+readonly MAX_BRIGHTNESS_PATH=$BACKLIGHT_PATH/max_brightness
+readonly BRIGHTNESS_PATH=$BACKLIGHT_PATH/brightness
+
+err()
+{
+    printf "%s: %s\\n" "$0" "$*" >&2
+}
+
+read_path()
+{
+    read -r < "$1" && echo -n "$REPLY"
+}
+
+div_rounded()
+{
+    echo -n $(( ($1 + $2 / 2) / $2 ))
+}
+
+clamp_value()
+{
+    local value=$1
+    local min=$2
+    local max=$3
+
+    if [ "$value" -gt "$max" ] ; then
+        value=$max
+    elif [ "$value" -lt "$min" ] ; then
+        value=$min
+    fi
+
+    echo -n "$value"
+}
+
+validate_input()
+{
+    [[ "$1" =~ ^[+\-]?[0-9]{1,3}$ ]] \
+    && [ "$1" -ge -100 ] \
+    && [ "$1" -le 100 ]
+}
+
+usage()
+{
+    printf "Usage: %s [ [+-]0..100 ]\\n" "$(basename "$0")"
+}
+
+main()
+{
+    local brightness
+    local percentage
+    local max_brightness
+
+    max_brightness=$(read_path "$MAX_BRIGHTNESS_PATH")
+
+    brightness=$(read_path "$BRIGHTNESS_PATH")
+    percentage=$(div_rounded "$(( brightness * 100 ))" "$max_brightness")
+
+    if [ $# -gt 0 ] ; then
+        if ! validate_input "$1" ; then
+            err "$1: invalid input"
+            usage >&2
+            return 1
+        fi
+
+        if [ ! -w "$BRIGHTNESS_PATH" ] ; then
+            err "$BRIGHTNESS_PATH: Cannot set brightness level"
+            return 1
+        fi
+
+        if [[ $1 =~ ^[+\-] ]] ; then
+	          percentage=$(clamp_value "$(( percentage + $1 ))" 0 100)
+        else
+	          percentage=$1
+        fi
+
+        brightness=$(div_rounded "$(( percentage * max_brightness ))" 100)
+
+        echo "$brightness" > "$BRIGHTNESS_PATH"
+    fi
+
+    printf "%s%% (%s/%s)\\n" "$percentage" "$brightness" "$max_brightness"
+}
+
+main "$@"
