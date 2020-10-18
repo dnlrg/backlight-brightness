@@ -8,10 +8,18 @@ Adjusts Intel backlight brightness level from the command line.
 $ backlight-brightness [[+|-]0..100]
 ```
 
+### If used without arguments, prints the current brightness level,
+
+```
+$ backlight-brightness
+45% (1997/4437)
+```
+
 ### Set brightness level to percentage from maximum value,
 
 ```
 $ backlight-brightness 50
+$ backlight-brightness
 50% (2219/4437)
 ```
 
@@ -19,15 +27,10 @@ $ backlight-brightness 50
 
 ```
 $ backlight-brightness +10
+$ backlight-brightness
 60% (2662/4437)
 
 $ backlight-brightness -15
-45% (1997/4437)
-```
-
-### If used without arguments, prints the current brightness level,
-
-```
 $ backlight-brightness
 45% (1997/4437)
 ```
