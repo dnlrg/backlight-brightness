@@ -55,34 +55,37 @@ main()
     local max_brightness
 
     max_brightness=$(read_path "$MAX_BRIGHTNESS_PATH")
-
     brightness=$(read_path "$BRIGHTNESS_PATH")
     percentage=$(div_rounded "$(( brightness * 100 ))" "$max_brightness")
 
-    if [ $# -gt 0 ] ; then
-        if ! validate_input "$1" ; then
-            err "$1: invalid input"
-            usage >&2
-            return 1
-        fi
+    if [ $# -eq 0 ] ; then
+        printf "%s%% (%s/%s)\\n" "$percentage" "$brightness" "$max_brightness"
 
-        if [ ! -w "$BRIGHTNESS_PATH" ] ; then
-            err "$BRIGHTNESS_PATH: Cannot set brightness level"
-            return 1
-        fi
-
-        if [[ $1 =~ ^[+\-] ]] ; then
-	          percentage=$(clamp_value "$(( percentage + $1 ))" 0 100)
-        else
-	          percentage=$1
-        fi
-
-        brightness=$(div_rounded "$(( percentage * max_brightness ))" 100)
-
-        echo "$brightness" > "$BRIGHTNESS_PATH"
+        return
     fi
 
-    printf "%s%% (%s/%s)\\n" "$percentage" "$brightness" "$max_brightness"
+    if ! validate_input "$1" ; then
+        err "$1: invalid input"
+        usage >&2
+
+        return 1
+    fi
+
+    if [ ! -w "$BRIGHTNESS_PATH" ] ; then
+        err "$BRIGHTNESS_PATH: Cannot set brightness level"
+
+        return 1
+    fi
+
+    if [[ $1 =~ ^[+\-] ]] ; then
+	      percentage=$(clamp_value "$(( percentage + $1 ))" 0 100)
+    else
+	      percentage=$1
+    fi
+
+    brightness=$(div_rounded "$(( percentage * max_brightness ))" 100)
+
+    echo "$brightness" > "$BRIGHTNESS_PATH"
 }
 
 main "$@"
