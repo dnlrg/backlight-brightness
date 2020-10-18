@@ -2,18 +2,60 @@
 #
 # script: backlight-brightness
 
-readonly BACKLIGHT_PATH=${BACKLIGHT_PATH:-/sys/class/backlight/intel_backlight}
+set -e
+
+readonly BACKLIGHT_SYSFS=${BACKLIGHT_SYSFS:-/sys/class/backlight}
+
+read_path()
+{
+    read -r < "$1" && echo -n "$REPLY"
+}
+
+guess_interface()
+{
+    local entry
+    local ifaces
+    local type
+
+    declare -A ifaces
+
+    for entry in "${BACKLIGHT_SYSFS}"/* ; do
+        if [ ! -f "${entry}/type" ] ; then
+            continue
+        fi
+
+        type=$(read_path "${entry}/type")
+
+        case $type in
+            platform|firmware|raw)
+                ifaces[$type]=$entry
+                ;;
+            *)
+                continue
+        esac
+
+    done
+
+    # Types are sorted based on preference. The first preferred interface
+    # is returned.
+    for type in platform firmware raw ; do
+        if [ -n "${ifaces[$type]}" ] ; then
+            echo -n "${ifaces[$type]}"
+
+            return
+        fi
+    done
+
+    return 1
+}
+
+readonly BACKLIGHT_PATH=${BACKLIGHT_PATH:-$(guess_interface)}
 readonly MAX_BRIGHTNESS_PATH=$BACKLIGHT_PATH/max_brightness
 readonly BRIGHTNESS_PATH=$BACKLIGHT_PATH/brightness
 
 err()
 {
     printf "%s: %s\\n" "$0" "$*" >&2
-}
-
-read_path()
-{
-    read -r < "$1" && echo -n "$REPLY"
 }
 
 div_rounded()
