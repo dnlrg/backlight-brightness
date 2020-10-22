@@ -29,7 +29,10 @@ jobs:
           apt -y install make shellcheck
 
       - name: Run static checks
-        run: make check
+        run: make static
+
+      - name: Run tests
+        run: make test
 
   fedora-checks:
     name: Fedora Checks
@@ -52,4 +55,7 @@ jobs:
           dnf -y install make ShellCheck
 
       - name: Run static checks
-        run: make check
+        run: make static
+
+      - name: Run tests
+        run: make test
