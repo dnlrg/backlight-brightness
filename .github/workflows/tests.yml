@@ -7,13 +7,49 @@ on:
     branches: [master]
 
 jobs:
-  checks:
-    name: Checks
+  debian-checks:
+    name: Debian Checks
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+          - "debian:10"
+          - "debian:testing"
     runs-on: ubuntu-latest
+    container:
+      image: ${{ matrix.container }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          apt -y update
+          apt -y install make shellcheck
+
+      - name: Run static checks
+        run: make check
+
+  fedora-checks:
+    name: Fedora Checks
+    strategy:
+      fail-fast: false
+      matrix:
+        container:
+          - "fedora:32"
+          - "fedora:33"
+    runs-on: ubuntu-latest
+    container:
+      image: registry.fedoraproject.org/${{ matrix.container }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: |
+          dnf -y install make ShellCheck
 
       - name: Run static checks
         run: make check
