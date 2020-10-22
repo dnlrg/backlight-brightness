@@ -80,7 +80,7 @@ clamp_value()
 
 validate_input()
 {
-    [[ "$1" =~ ^[+\-]?[0-9]{1,3}$ ]] \
+    [[ "$1" =~ ^[+'-']?[0-9]{1,3}$ ]] \
     && [ "$1" -ge -100 ] \
     && [ "$1" -le 100 ]
 }
@@ -119,7 +119,7 @@ main()
         return 1
     fi
 
-    if [[ $1 =~ ^[+\-] ]] ; then
+    if [[ $1 =~ ^[+'-'] ]] ; then
 	      percentage=$(clamp_value "$(( percentage + $1 ))" 0 100)
     else
 	      percentage=$1
