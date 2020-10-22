@@ -4,14 +4,14 @@ PROGRAM = backlight-brightness
 DESTDIR = ~/.local
 
 .PHONY: all
-all: check
+all: static
 
 .PHONY: install
-install: $(PROGRAM) test
+install: $(PROGRAM) static
 	install -m 0755 $(PROGRAM) $(DESTDIR)/bin
 
-.PHONY: test
-test: $(PROGRAM)
+.PHONY: static
+static: $(PROGRAM)
 	shellcheck $<
 
 .PHONY: check
