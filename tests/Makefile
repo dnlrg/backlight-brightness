@@ -1,7 +1,11 @@
 SHELL = /bin/bash
 
 .PHONY: all
-all: test
+all: static test
+
+.PHONY: static
+static:
+	shellcheck test.sh
 
 .PHONY: test
 test:
