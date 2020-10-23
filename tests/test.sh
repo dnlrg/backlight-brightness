@@ -32,6 +32,38 @@ init_backlight()
     echo "$type" > "$path"/type
 }
 
+assert_value()
+{
+    local pct
+    local val
+    local max
+
+    pct=$1
+    val=$2
+    max=$3
+
+    $target_script | grep -qE "^$pct% \\($val/$max\\)$"
+
+    echo PASS
+}
+
+set_value()
+{
+    local pct
+    local out
+
+    pct=$1
+
+    out="$($target_script "$pct")"
+
+    test -z "$out"
+}
+
+test_msg()
+{
+    echo -ne "$*:\\t"
+}
+
 fake_sysfs=$(mktemp -d)
 fake_path=$fake_sysfs/fake_backlight
 
@@ -39,24 +71,32 @@ init_backlight "$fake_path" raw
 
 export BACKLIGHT_SYSFS=$fake_sysfs
 
-$target_script | grep -qE "^100% \\(1000/1000\\)$"
+test_msg "Initial value"
 
-output=$($target_script 50)
+assert_value 100 1000 1000
 
-[ -z "$output" ]
+test_msg "Set value"
 
-"$target_script" | grep -qE "^50% \\(500/1000\\)$"
+set_value 50
 
-output=$($target_script +10)
+assert_value 50 500 1000
 
-[ -z "$output" ]
+test_msg "Increment"
 
-"$target_script" | grep -qE "^60% \\(600/1000\\)$"
+set_value +10
 
-output=$($target_script -20)
+assert_value 60 600 1000
 
-[ -z "$output" ]
+test_msg "Decrement"
 
-"$target_script" | grep -qE "^40% \\(400/1000\\)$"
+set_value -20
+
+assert_value 40 400 1000
+
+test_msg "Rounded value"
+
+set_value 33
+
+assert_value 33 330 1000
 
 echo OK
