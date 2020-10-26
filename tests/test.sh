@@ -42,9 +42,14 @@ assert_value()
     val=$2
     max=$3
 
-    $target_script | grep -qE "^$pct% \\($val/$max\\)$"
+    if $target_script | grep -qE "^$pct% \\($val/$max\\)$" ; then
+        echo PASS
+        return
+    fi
 
-    echo PASS
+    echo FAIL
+
+    return 1
 }
 
 set_value()
@@ -54,12 +59,23 @@ set_value()
 
     pct=$1
 
-    out="$($target_script "$pct")"
-
-    test -z "$out"
+    out="$($target_script "$pct")" && test -z "$out"
 }
 
-test_msg()
+assert_fails()
+{
+    if ! "$@" &> /dev/null ; then
+        echo PASS
+
+        return
+    fi
+
+    echo FAIL
+
+    return 1
+}
+
+msg()
 {
     echo -ne "$*:\\t"
 }
@@ -71,29 +87,41 @@ init_backlight "$fake_path" raw
 
 export BACKLIGHT_SYSFS=$fake_sysfs
 
-test_msg "Initial value"
+msg "Initial value"
 
 assert_value 100 1000 1000
 
-test_msg "Set value"
+msg "Non num input"
+
+assert_fails set_value xx
+
+msg "Of range, +"
+
+assert_fails set_value 101
+
+msg "Of range, -"
+
+assert_fails set_value '-101'
+
+msg "Set value"
 
 set_value 50
 
 assert_value 50 500 1000
 
-test_msg "Increment"
+msg "Increment"
 
 set_value +10
 
 assert_value 60 600 1000
 
-test_msg "Decrement"
+msg "Decrement"
 
 set_value -20
 
 assert_value 40 400 1000
 
-test_msg "Rounded value"
+msg "Rounded value"
 
 set_value 33
 
