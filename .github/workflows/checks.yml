@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         container:
-          - "debian:10"
+          - "debian:stable"
           - "debian:testing"
     runs-on: ubuntu-latest
     container:
@@ -40,8 +40,8 @@ jobs:
       fail-fast: false
       matrix:
         container:
-          - "fedora:32"
-          - "fedora:33"
+          - "fedora:34"
+          - "fedora:35"
     runs-on: ubuntu-latest
     container:
       image: registry.fedoraproject.org/${{ matrix.container }}
