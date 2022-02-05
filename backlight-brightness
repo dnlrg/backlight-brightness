@@ -6,11 +6,6 @@ set -e
 
 readonly BACKLIGHT_SYSFS=${BACKLIGHT_SYSFS:-/sys/class/backlight}
 
-read_path()
-{
-    read -r < "$1" && echo -n "$REPLY"
-}
-
 guess_interface()
 {
     local entry
@@ -24,7 +19,7 @@ guess_interface()
             continue
         fi
 
-        type=$(read_path "${entry}/type")
+        type=$(< "${entry}/type")
 
         case $type in
             platform|firmware|raw)
@@ -96,8 +91,8 @@ main()
     local percentage
     local max_brightness
 
-    max_brightness=$(read_path "$MAX_BRIGHTNESS_PATH")
-    brightness=$(read_path "$BRIGHTNESS_PATH")
+    max_brightness=$(< "$MAX_BRIGHTNESS_PATH")
+    brightness=$(< "$BRIGHTNESS_PATH")
     percentage=$(div_rounded "$(( brightness * 100 ))" "$max_brightness")
 
     if [ $# -eq 0 ] ; then
